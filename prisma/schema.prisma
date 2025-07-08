@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum METHODS {
+  CASH
+  ONLINE
+}
+
+enum STATUS {
+  PAID
+  PENDING
+}
+
+model User {
+  id             String     @id @unique
+  email          String     @unique
+  hashedPassword String?
+  name           String?
+  customers      Customer[]
+  products       Products[]
+  Sale           Sale[]
+  createdAt      DateTime   @default(now())
+}
+
+model Products {
+  id            String     @id @default(uuid())
+  name          String
+  description   String
+  price         Float
+  stockQuantity Int
+  recorderLevel Int
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  createdAt     DateTime   @default(now())
+  SaleItem      SaleItem[]
+}
+
+model Customer {
+  id     String @id @default(uuid())
+  name   String
+  phone  String    @unique
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  Sale   Sale[]
+}
+
+model Sale {
+  id            String     @id @default(uuid())
+  userId        String
+  customerId    String
+  user          User       @relation(fields: [userId], references: [id])
+  customer      Customer   @relation(fields: [customerId], references: [id])
+  salesDate     DateTime   @default(now())
+  amountPaid    Float
+  updatedAt     DateTime   @updatedAt
+  paymentStatus STATUS     @default(PENDING)
+  paymentMethod METHODS    @default(CASH)
+  totalAmount   Float
+  SaleItem      SaleItem[]
+  
+}
+
+model SaleItem {
+  id        String   @id @default(uuid())
+  saleId    String
+  productId String
+  price     Float
+  quantity  Int
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  product   Products @relation(fields: [productId], references: [id])
+}
