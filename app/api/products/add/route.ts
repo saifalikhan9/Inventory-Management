@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const POST = async (req: NextRequest) => {
   try {
     const { userId } = await auth();
-    console.log(userId, "userid");
+
     if (!userId) {
       return NextResponse.json(
         { message: "unauthorized user" },
@@ -13,9 +13,9 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    const { name, description, price, stockQuantity, recorderLevel } =
+    const { name, description, price, stockQuantity, reorderLevel } =
       await req.json();
-    if (!name || !description || !price || !stockQuantity || !recorderLevel) {
+    if (!name || !description || !price || !stockQuantity || !reorderLevel) {
       return NextResponse.json(
         { messsage: "Required feilds are missing" },
         { status: 404 }
@@ -39,16 +39,15 @@ export const POST = async (req: NextRequest) => {
           description,
           price,
           stockQuantity,
-          recorderLevel,
+          recorderLevel: reorderLevel,
           userId,
         },
       });
       return NextResponse.json(
-        { message: "successfully added new product " },
+        { message: "successfully added new product ", newProduct },
         { status: 201 }
       );
     }
-    return NextResponse.json({ message: "success" }, { status: 200 });
   } catch (error) {
     console.error(error, "server error");
     return NextResponse.json(

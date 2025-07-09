@@ -117,7 +117,15 @@ export const POST = async (req: NextRequest) => {
           ),
         },
       },
+      include: {
+        customer: true,
+        SaleItem: {
+          include: {product:true}
+        },
+      },
     });
+    console.log(sale, "sales data");
+
     return NextResponse.json(sale, { status: 201 });
   } catch (error) {
     console.error(error);

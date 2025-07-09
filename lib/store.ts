@@ -15,18 +15,28 @@ interface customerTypes {
   name: string;
   phone: number;
 }
-
+interface SaleshistotyType {
+  customerId: string;
+  productId: string;
+  totalPrice: number;
+  amountPaid: number;
+  paymentMode: METHODS;
+  paymentStatus: STATUS;
+  salesDate: Date;
+}
 export interface Sale {
   id: string;
   customer: customerTypes;
-  SaleItem: Array<{
-    product: Array<{
+  SaleItem: Array <{
+    id:string
+    product: {
+      id:string
       name: string;
-      description: string;
-      price: number;
-    }>;
+    };
     price: number;
     quantity: number;
+    saleId:string
+    productId:string
   }>;
   totalAmount: number;
   amountPaid: number;
@@ -70,16 +80,22 @@ export const useInventoryStore = create<InventoryStore>()(
           products: state.products.filter((product) => product.id !== id),
         })),
       updateProductQuantity: (id, quantityChange) =>
-        set((state) => ({
-          products: state.products.map((product) =>
-            product.id === id
-              ? {
-                  ...product,
-                  quantity: Math.max(0, product.stockQuantity + quantityChange),
-                }
-              : product
-          ),
-        })),
+        set((state) => {
+          console.log(id, quantityChange);
+          return {
+            products: state.products.map((product) =>
+              product.id === id
+                ? {
+                    ...product,
+                    stockQuantity: Math.max(
+                      0,
+                      product.stockQuantity + quantityChange
+                    ),
+                  }
+                : product
+            ),
+          };
+        }),
       setSale: (sales: Sale[]) => set({ sales }),
       addSale: (sale) =>
         set((state) => ({
@@ -96,8 +112,6 @@ export const useInventoryStore = create<InventoryStore>()(
           sales: state.sales.filter((sale) => sale.id !== id),
         })),
     }),
-    {
-      name: "inventory-storage",
-    }
+    { name: "Inventory-Storage" }
   )
 );

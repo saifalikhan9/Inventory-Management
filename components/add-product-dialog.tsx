@@ -1,71 +1,84 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useInventoryStore } from "@/lib/store"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useInventoryStore } from "@/lib/store";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddProductDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) {
+export function AddProductDialog({
+  open,
+  onOpenChange,
+}: AddProductDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
     stockQuantity: "",
     reorderLevel: "",
-  })
+  });
 
-  const { addProduct } = useInventoryStore()
-  const { toast } = useToast()
+  const { addProduct } = useInventoryStore();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (!formData.name || !formData.price || !formData.stockQuantity) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     const product = {
-      id: Date.now().toString(),
       name: formData.name,
       description: formData.description,
       price: Number.parseFloat(formData.price),
       stockQuantity: Number.parseInt(formData.stockQuantity),
       reorderLevel: Number.parseInt(formData.reorderLevel) || 10,
+    };
+    const res = await fetch("api/products/add", {
+      method: "POST",
+      body: JSON.stringify(product),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      addProduct(data.newProduct);
+
+      setFormData({
+        name: "",
+        description: "",
+        price: "",
+        stockQuantity: "",
+        reorderLevel: "",
+      });
+
+      onOpenChange(false);
+
+      toast({
+        title: "Success",
+        description: "Product added successfully",
+      });
     }
-
-    addProduct(product)
-
-    setFormData({
-      name: "",
-      description: "",
-      price: "",
-      stockQuantity: "",
-      reorderLevel: "",
-    })
-
-    onOpenChange(false)
-
-    toast({
-      title: "Success",
-      description: "Product added successfully",
-    })
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,7 +92,9 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               required
             />
           </div>
@@ -88,7 +103,9 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -99,7 +116,9 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                 type="number"
                 step="0.01"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
                 required
               />
             </div>
@@ -109,7 +128,9 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                 id="quantity"
                 type="number"
                 value={formData.stockQuantity}
-                onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, stockQuantity: e.target.value })
+                }
                 required
               />
             </div>
@@ -120,12 +141,18 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
               id="reorderLevel"
               type="number"
               value={formData.reorderLevel}
-              onChange={(e) => setFormData({ ...formData, reorderLevel: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, reorderLevel: e.target.value })
+              }
               placeholder="10"
             />
           </div>
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit">Add Product</Button>
@@ -133,5 +160,5 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -39,7 +39,6 @@ export default function Sales() {
     (state) => state.updateProductQuantity
   );
   const { toast } = useToast();
-
   const availableProducts = products.filter((p) => p.stockQuantity > 0);
   const totalAmount = saleItems.reduce((sum, item) => sum + item.total, 0);
 
@@ -134,27 +133,28 @@ export default function Sales() {
     if (res.ok) {
       alert("succes");
       const data = await res.json();
+
       addSale(data);
+
+      // Update inventory
+      saleItems.forEach((item) => {
+        updateProductQuantity(item.productId, -item.quantity);
+      });
+
+      // Reset form
+      setCustomerName("");
+      setCustomerContact("");
+      setSaleItems([]);
+      setPaymentMode("");
+      setAmountPaid("");
+
+      toast({
+        title: "Success",
+        description: "Sale recorded successfully",
+      });
     } else {
       alert("failed");
     }
-
-    // Update inventory
-    saleItems.forEach((item) => {
-      updateProductQuantity(item.productId, -item.quantity);
-    });
-
-    // Reset form
-    setCustomerName("");
-    setCustomerContact("");
-    setSaleItems([]);
-    setPaymentMode("");
-    setAmountPaid("");
-
-    toast({
-      title: "Success",
-      description: "Sale recorded successfully",
-    });
   };
 
   return (
