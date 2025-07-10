@@ -30,13 +30,13 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           <SheetContent side="left" className="w-64 p-0">
             <SheetHeader className="p-6 pb-4">
               <SheetTitle className="text-left">InventoryPro</SheetTitle>
-              <UserButton/>
+            
             </SheetHeader>
             <MobileSidebar onNavigate={() => setSidebarOpen(false)} />
           </SheetContent>
         </Sheet>
         <h1 className="text-lg font-semibold text-gray-900">InventoryPro</h1>
-        <div className="w-10" /> {/* Spacer for centering */}
+         <UserButton  />
       </div>
 
       <div className="flex">
