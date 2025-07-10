@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 import { MobileSidebar } from "@/components/mobile-sidebar"
+import { UserButton } from "@clerk/nextjs"
 
 interface MobileLayoutProps {
   children: React.ReactNode
@@ -29,6 +30,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           <SheetContent side="left" className="w-64 p-0">
             <SheetHeader className="p-6 pb-4">
               <SheetTitle className="text-left">InventoryPro</SheetTitle>
+              <UserButton/>
             </SheetHeader>
             <MobileSidebar onNavigate={() => setSidebarOpen(false)} />
           </SheetContent>
