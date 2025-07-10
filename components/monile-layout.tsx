@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -20,9 +20,16 @@ interface MobileLayoutProps {
 
 export function MobileLayout({ children }: MobileLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
 
- 
+  const { user } = useClerk();
+  const resetStore = useInventoryStore((state) => state.reset);
+  useEffect(() => {
+    if (user === null) {
+      console.log(user, "user");
+      resetStore();
+      localStorage.clear();
+    }
+  }, [user, resetStore]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -45,9 +52,8 @@ export function MobileLayout({ children }: MobileLayoutProps) {
         <h1 className="text-lg font-semibold text-gray-900">InventoryPro</h1>
 
         {/* Sign out safely */}
-    
-          <UserButton   />
-       
+
+        <UserButton />
       </div>
 
       <div className="flex">

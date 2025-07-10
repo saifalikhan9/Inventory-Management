@@ -57,6 +57,7 @@ interface InventoryStore {
   addSale: (sale: Sale) => void;
   updateSale: (sale: Sale) => void;
   deleteSale: (id: string) => void;
+  reset : () => void
 }
 
 export const useInventoryStore = create<InventoryStore>()(
