@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, Package, ShoppingCart, History, BarChart3 } from "lucide-react"
+import { UserButton } from "@clerk/nextjs"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -22,9 +23,10 @@ export function MobileSidebar({ onNavigate }: MobileSidebarProps) {
   return (
     <div className="w-64 bg-white shadow-lg h-full lg:h-screen">
       <div className="hidden lg:block p-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <BarChart3 className="h-8 w-8 text-blue-600" />
           <h1 className="text-xl font-bold text-gray-900">InventoryPro</h1>
+          <UserButton/>
         </div>
       </div>
       <nav className="mt-2 lg:mt-6">
@@ -47,6 +49,7 @@ export function MobileSidebar({ onNavigate }: MobileSidebarProps) {
             </Link>
           )
         })}
+        
       </nav>
     </div>
   )
