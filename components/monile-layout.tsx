@@ -1,20 +1,28 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
-import { MobileSidebar } from "@/components/mobile-sidebar"
-import { UserButton } from "@clerk/nextjs"
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+import { MobileSidebar } from "@/components/mobile-sidebar";
+import { UserButton, useClerk } from "@clerk/nextjs";
+import { useInventoryStore } from "@/lib/store";
 
 interface MobileLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function MobileLayout({ children }: MobileLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+
+ 
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,13 +38,16 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           <SheetContent side="left" className="w-64 p-0">
             <SheetHeader className="p-6 pb-4">
               <SheetTitle className="text-left">InventoryPro</SheetTitle>
-            
             </SheetHeader>
             <MobileSidebar onNavigate={() => setSidebarOpen(false)} />
           </SheetContent>
         </Sheet>
         <h1 className="text-lg font-semibold text-gray-900">InventoryPro</h1>
-         <UserButton  />
+
+        {/* Sign out safely */}
+    
+          <UserButton   />
+       
       </div>
 
       <div className="flex">
@@ -49,5 +60,5 @@ export function MobileLayout({ children }: MobileLayoutProps) {
         <main className="flex-1 w-full min-w-0">{children}</main>
       </div>
     </div>
-  )
+  );
 }

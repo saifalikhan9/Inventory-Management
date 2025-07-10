@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { AddProductDialog } from "@/components/add-product-dialog";
 import { useInventoryStore } from "@/lib/store";
+import { useClerk } from "@clerk/nextjs";
 
 export default function Dashboard({ productsInitialData, salesInitialData }) {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -20,6 +21,13 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
   const sales = useInventoryStore((state) => state.sales);
   const setProducts = useInventoryStore((state) => state.setProducts);
   const setSale = useInventoryStore((state) => state.setSale);
+  const { user } = useClerk();
+  useEffect(() => {
+    if (user === null) {
+      localStorage.removeItem("Inventory-Storage");
+    }
+  }, [user]);
+  
   useEffect(() => {
     if (
       (products.length === 0 && productsInitialData.length > 0) ||
