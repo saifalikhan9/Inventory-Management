@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { MobileSidebar } from "@/components/mobile-sidebar";
-import { UserButton, useClerk } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { useInventoryStore } from "@/lib/store";
 
 interface MobileLayoutProps {
@@ -20,16 +20,29 @@ interface MobileLayoutProps {
 
 export function MobileLayout({ children }: MobileLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useUser(); // useUser is preferred over useClerk for easier access
 
-  const { user } = useClerk();
   const resetStore = useInventoryStore((state) => state.reset);
+
   useEffect(() => {
-    if (user === null) {
-      console.log(user, "user");
+    const storageData = localStorage.getItem("Inventory-Storage");
+    if (!user?.id || !storageData) return;
+
+    try {
+      const parsed = JSON.parse(storageData);
+      const storedUserId = parsed?.state?.sales?.[0]?.userId;
+
+      if (storedUserId && user.id !== storedUserId) {
+        console.log("Mismatch detected. Clearing local data.");
+        resetStore();
+        localStorage.clear();
+      }
+    } catch (err) {
+      console.warn("Error parsing local storage", err);
       resetStore();
       localStorage.clear();
     }
-  }, [user, resetStore]);
+  }, [user?.id, resetStore]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,8 +63,6 @@ export function MobileLayout({ children }: MobileLayoutProps) {
           </SheetContent>
         </Sheet>
         <h1 className="text-lg font-semibold text-gray-900">InventoryPro</h1>
-
-        {/* Sign out safely */}
 
         <UserButton />
       </div>

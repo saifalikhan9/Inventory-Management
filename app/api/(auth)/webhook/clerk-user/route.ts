@@ -55,6 +55,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json("Unhandled event type", { status: 400 });
   } catch (err) {
     console.error("Error verifying webhook:", err);
-    return new Response("Error verifying webhook", { status: 400 });
+    return new Response("Error verifying webhook", { status: 500 });
   }
 }
