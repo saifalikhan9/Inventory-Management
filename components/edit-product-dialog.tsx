@@ -80,7 +80,8 @@ export function EditProductDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] mx-4 max-h-[90vh] overflow-y-auto">
+        {" "}
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
         </DialogHeader>
@@ -89,6 +90,7 @@ export function EditProductDialog({
             <Label htmlFor="name">Product Name *</Label>
             <Input
               id="name"
+              className="mt-1"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
@@ -100,13 +102,15 @@ export function EditProductDialog({
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
+              className="mt-1"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {" "}
             <div>
               <Label htmlFor="price">Price *</Label>
               <Input
@@ -127,6 +131,7 @@ export function EditProductDialog({
               <Input
                 id="quantity"
                 type="text"
+                className="mt-1"
                 value={formData.quantity}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -139,15 +144,18 @@ export function EditProductDialog({
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button type="submit">Update Product</Button>
+            <Button type="submit" className="w-full sm:w-auto">
+              Update Product
+            </Button>
           </div>
         </form>
       </DialogContent>

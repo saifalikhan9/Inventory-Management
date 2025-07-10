@@ -81,15 +81,15 @@ export function EditSaleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] mx-4">
         <DialogHeader>
           <DialogTitle>Update Payment</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <Label>Customer:</Label>
-              <p className="font-medium">{sale.customer.name}</p>
+              <p className="font-medium truncate">{sale.customer.name}</p>
             </div>
             <div>
               <Label>Total Amount:</Label>
@@ -112,11 +112,12 @@ export function EditSaleDialog({
                     setAmountPaid(value);
                   }
                 }}
+                className="mt-1"
               />
             </div>
 
             {Number.parseFloat(amountPaid) < sale.totalAmount && (
-              <div className="text-sm text-orange-600">
+              <div className="text-sm text-orange-600 p-3 bg-orange-50 rounded-lg">
                 Balance Due: ₹
                 {(
                   sale.totalAmount - Number.parseFloat(amountPaid || "0")
@@ -124,15 +125,16 @@ export function EditSaleDialog({
               </div>
             )}
 
-            <div className="flex justify-end space-x-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
-              <Button type="submit">Update Payment</Button>
+              <Button type="submit" className="w-full sm:w-auto">Update Payment</Button>
             </div>
           </form>
         </div>

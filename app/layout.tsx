@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { Sidebar } from "@/components/sidebar";
 import { Toaster } from "sonner";
+import { MobileLayout } from "@/components/monile-layout";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,10 +20,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body >
-        <div className="flex h-screen bg-gray-50">
-          <Sidebar />
-          <main className="flex-1 overflow-auto">{children}</main>
-        </div>
+           <MobileLayout>{children}</MobileLayout>
         <Toaster />
       </body>
       </html>

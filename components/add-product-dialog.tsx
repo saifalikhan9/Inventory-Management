@@ -78,7 +78,7 @@ export function AddProductDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] mx-4 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
         </DialogHeader>
@@ -92,6 +92,7 @@ export function AddProductDialog({
                 setFormData({ ...formData, name: e.target.value })
               }
               required
+              className="mt-1"
             />
           </div>
           <div>
@@ -99,12 +100,13 @@ export function AddProductDialog({
             <Textarea
               id="description"
               value={formData.description}
+              className="mt-1"
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="price">Price *</Label>
               <Input
@@ -112,6 +114,7 @@ export function AddProductDialog({
                 type="number"
                 step="0.01"
                 value={formData.price}
+                className="mt-1"
                 onChange={(e) =>
                   setFormData({ ...formData, price: e.target.value })
                 }
@@ -124,6 +127,7 @@ export function AddProductDialog({
                 id="quantity"
                 type="number"
                 value={formData.stockQuantity}
+                className="mt-1"
                 onChange={(e) =>
                   setFormData({ ...formData, stockQuantity: e.target.value })
                 }
@@ -136,6 +140,7 @@ export function AddProductDialog({
             <Input
               id="reorderLevel"
               type="number"
+              className="mt-1"
               value={formData.reorderLevel}
               onChange={(e) =>
                 setFormData({ ...formData, reorderLevel: e.target.value })
@@ -143,15 +148,18 @@ export function AddProductDialog({
               placeholder="10"
             />
           </div>
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button type="submit">Add Product</Button>
+            <Button type="submit" className="w-full sm:w-auto">
+              Add Product
+            </Button>
           </div>
         </form>
       </DialogContent>

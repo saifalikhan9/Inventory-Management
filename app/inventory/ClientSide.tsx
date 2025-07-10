@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,7 @@ import { AddProductDialog } from "@/components/add-product-dialog";
 import { EditProductDialog } from "@/components/edit-product-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { toast } from "sonner";
-export default function ClientSide({ ProductsData }: any) {
+export default function ClientSide() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -28,14 +28,7 @@ export default function ClientSide({ ProductsData }: any) {
   );
 
   const products = useInventoryStore((state) => state.products);
-  const setProducts = useInventoryStore((state) => state.setProducts);
   const deleteProduct = useInventoryStore((state) => state.deleteProduct);
-  useEffect(() => {
-    if (products.length === 0 && ProductsData?.length > 0) {
-      setProducts(ProductsData);
-    }
-  }, [products, ProductsData, setProducts]);
-
   const filteredProducts = products.filter(
     (product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -62,86 +55,177 @@ export default function ClientSide({ ProductsData }: any) {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
+    <div className="p-4 lg:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
           Inventory Management
         </h1>
-        <Button onClick={() => setIsAddProductOpen(true)}>
+        <Button
+          onClick={() => setIsAddProductOpen(true)}
+          className="w-full sm:w-auto"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Product
         </Button>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Product Inventory</CardTitle>
+        <CardHeader className="space-y-4">
+          <CardTitle className="text-lg">Product Inventory</CardTitle>
           <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-gray-400" />
+            <Search className="h-4 w-4 text-gray-400 flex-shrink-0" />
             <Input
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
+              className="w-full"
             />
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Reorder Level</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.description}</TableCell>
-                  <TableCell>₹{product.price.toFixed(2)}</TableCell>
-                  <TableCell>{product.stockQuantity}</TableCell>
-                  <TableCell>{product.recorderLevel}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        product.stockQuantity <= product.recorderLevel
-                          ? "destructive"
-                          : "default"
-                      }
-                    >
-                      {product.stockQuantity <= product.recorderLevel
-                        ? "Low Stock"
-                        : "In Stock"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingProduct(product)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeletingProductId(product.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+        <CardContent className="p-0">
+          <div className="block lg:hidden">
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 px-4">
+                {searchTerm
+                  ? "No products found matching your search."
+                  : "No products in inventory."}
+              </div>
+            ) : (
+              <div className="space-y-4 p-4">
+                {filteredProducts.map((product) => (
+                  <Card key={product.id} className="border">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-medium text-lg truncate">
+                              {product.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {product.description}
+                            </p>
+                          </div>
+                          <Badge
+                            variant={
+                              product.stockQuantity <= product.recorderLevel
+                                ? "destructive"
+                                : "default"
+                            }
+                            className="ml-2"
+                          >
+                            {product.stockQuantity <= product.recorderLevel
+                              ? "Low Stock"
+                              : "In Stock"}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">Price:</span>
+                            <p className="font-medium">
+                              ${product.price.toFixed(2)}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Quantity:</span>
+                            <p className="font-medium">{product.stockQuantity}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">
+                              Reorder Level:
+                            </span>
+                            <p className="font-medium">
+                              {product.recorderLevel}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingProduct(product)}
+                            className="flex-1"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeletingProductId(product.id)}
+                            className="flex-1"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="hidden lg:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Reorder Level</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">
+                      {product.name}
+                    </TableCell>
+                    <TableCell>{product.description}</TableCell>
+                    <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                    <TableCell>{product.stockQuantity}</TableCell>
+                    <TableCell>{product.recorderLevel}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          product.stockQuantity <= product.recorderLevel
+                            ? "destructive"
+                            : "default"
+                        }
+                      >
+                        {product.stockQuantity <= product.recorderLevel
+                          ? "Low Stock"
+                          : "In Stock"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingProduct(product)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeletingProductId(product.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {filteredProducts.length === 0 && (
             <div className="text-center py-8 text-gray-500">

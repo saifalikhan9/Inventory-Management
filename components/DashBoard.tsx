@@ -15,13 +15,11 @@ import { AddProductDialog } from "@/components/add-product-dialog";
 import { useInventoryStore } from "@/lib/store";
 
 export default function Dashboard({ productsInitialData, salesInitialData }) {
-  const [isAddProductOpen, setIsAddProductOpen] = useState(false); 
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const products = useInventoryStore((state) => state.products);
   const sales = useInventoryStore((state) => state.sales);
   const setProducts = useInventoryStore((state) => state.setProducts);
   const setSale = useInventoryStore((state) => state.setSale);
-  console.log(salesInitialData,"init");
-  
   useEffect(() => {
     if (
       (products.length === 0 && productsInitialData.length > 0) ||
@@ -53,17 +51,23 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
   const recentSales = sales.slice(-5).reverse();
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <Button onClick={() => setIsAddProductOpen(true)}>
+    <div className="p-4 lg:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+          Dashboard
+        </h1>
+        <Button
+          onClick={() => setIsAddProductOpen(true)}
+          className="w-full sm:w-auto"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Product
         </Button>
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        {" "}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -75,7 +79,6 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
             <div className="text-2xl font-bold">{products.length}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -89,7 +92,6 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -101,7 +103,6 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
             <div className="text-2xl font-bold">{todaysSales.length}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Daily Revenue</CardTitle>
@@ -115,32 +116,39 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
               Low Stock Alert
             </CardTitle>
           </CardHeader>
           <CardContent>
             {lowStockProducts.length === 0 ? (
-              <p className="text-gray-500">All products are well stocked!</p>
+              <p className="text-gray-500 text-center py-4">
+                All products are well stocked!
+              </p>
             ) : (
               <div className="space-y-3">
                 {lowStockProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="flex justify-between items-center p-3 bg-orange-50 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-3 bg-orange-50 rounded-lg"
                   >
-                    <div>
-                      <p className="font-medium">{product.name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{product.name}</p>
                       <p className="text-sm text-gray-600">
                         Current: {product.stockQuantity} | Reorder:{" "}
                         {product.recorderLevel}
                       </p>
                     </div>
-                    <Badge variant="destructive">Low Stock</Badge>
+                    <Badge
+                      variant="destructive"
+                      className="self-start sm:self-center"
+                    >
+                      Low Stock
+                    </Badge>
                   </div>
                 ))}
               </div>
@@ -150,25 +158,29 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Sales</CardTitle>
+            <CardTitle className="text-lg">Recent Sales</CardTitle>
           </CardHeader>
           <CardContent>
             {recentSales.length === 0 ? (
-              <p className="text-gray-500">No sales recorded yet.</p>
+              <p className="text-gray-500 text-center py-4">
+                No sales recorded yet.
+              </p>
             ) : (
               <div className="space-y-3">
                 {recentSales.map((sale) => (
                   <div
                     key={sale.id}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-3 bg-gray-50 rounded-lg"
                   >
-                    <div>
-                      <p className="font-medium">{sale.customer.name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">
+                        {sale.customer.name}
+                      </p>
                       <p className="text-sm text-gray-600">
                         {new Date(sale.salesDate).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
                       <p className="font-medium">
                         ₹{sale.totalAmount.toFixed(2)}
                       </p>
