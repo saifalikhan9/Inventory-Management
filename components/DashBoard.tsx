@@ -22,12 +22,14 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
   const setProducts = useInventoryStore((state) => state.setProducts);
   const setSale = useInventoryStore((state) => state.setSale);
   const { user } = useClerk();
+  const resetStore = useInventoryStore((state) => state.reset);
   useEffect(() => {
     if (user === null) {
+      resetStore();
       localStorage.removeItem("Inventory-Storage");
     }
-  }, [user]);
-  
+  }, [user,resetStore]);
+
   useEffect(() => {
     if (
       (products.length === 0 && productsInitialData.length > 0) ||

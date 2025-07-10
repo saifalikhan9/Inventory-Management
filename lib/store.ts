@@ -27,16 +27,16 @@ interface SaleshistotyType {
 export interface Sale {
   id: string;
   customer: customerTypes;
-  SaleItem: Array <{
-    id:string
+  SaleItem: Array<{
+    id: string;
     product: {
-      id:string
+      id: string;
       name: string;
     };
     price: number;
     quantity: number;
-    saleId:string
-    productId:string
+    saleId: string;
+    productId: string;
   }>;
   totalAmount: number;
   amountPaid: number;
@@ -111,6 +111,7 @@ export const useInventoryStore = create<InventoryStore>()(
         set((state) => ({
           sales: state.sales.filter((sale) => sale.id !== id),
         })),
+      reset: () => set(() => ({ products: [], sales: [] })),
     }),
     { name: "Inventory-Storage" }
   )
