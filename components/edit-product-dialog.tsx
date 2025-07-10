@@ -14,8 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Product, useInventoryStore } from "@/lib/store";
-import { useToast } from "@/hooks/use-toast";
-import prisma from "@/lib/db/prisma";
+import { toast } from "sonner";
 
 interface EditProductDialogProps {
   product: Product;
@@ -36,7 +35,6 @@ export function EditProductDialog({
   });
 
   const { updateProduct } = useInventoryStore();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (product) {
@@ -53,14 +51,12 @@ export function EditProductDialog({
     e.preventDefault();
 
     if (!formData.name || !formData.price || !formData.quantity) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
       });
       return;
     }
- const id = product.id
+    const id = product.id;
     const updatedProduct = {
       name: formData.name,
       description: formData.description,
@@ -74,11 +70,10 @@ export function EditProductDialog({
     const data = await res.json();
     console.log(data, "data");
 
-    updateProduct({...product,...updatedProduct});
+    updateProduct({ ...product, ...updatedProduct });
     onOpenChange(false);
 
-    toast({
-      title: "Success",
+    toast.success("Success", {
       description: "Product updated successfully",
     });
   };

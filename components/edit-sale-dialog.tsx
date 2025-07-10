@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Sale, useInventoryStore } from "@/lib/store";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface EditSaleDialogProps {
   sale: Sale;
@@ -29,7 +29,6 @@ export function EditSaleDialog({
   const [amountPaid, setAmountPaid] = useState("");
 
   const updateSale = useInventoryStore((state) => state.updateSale);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (sale) {
@@ -42,10 +41,8 @@ export function EditSaleDialog({
 
     const newAmountPaid = Number.parseFloat(amountPaid);
     if (isNaN(newAmountPaid) || newAmountPaid < 0) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please enter a valid amount",
-        variant: "destructive",
       });
       return;
     }
@@ -70,13 +67,13 @@ export function EditSaleDialog({
       updateSale(updatedSaleData.updatedData as Sale);
       onOpenChange(false);
 
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Payment updated successfully",
       });
-      alert("Payment updated successfully");
     } else {
-      alert("Failed to update");
+      toast.error("Error", {
+        description: "Failed to update Payment",
+      });
     }
   };
 

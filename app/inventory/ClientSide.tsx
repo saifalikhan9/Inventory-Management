@@ -18,6 +18,7 @@ import { useInventoryStore } from "@/lib/store";
 import { AddProductDialog } from "@/components/add-product-dialog";
 import { EditProductDialog } from "@/components/edit-product-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { toast } from "sonner";
 export default function ClientSide({ ProductsData }: any) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -42,19 +43,25 @@ export default function ClientSide({ ProductsData }: any) {
   );
 
   const handleDelete = async (id: string) => {
-    const res = await fetch("api/products/delete",{
-      method:"DELETE",
-      body : JSON.stringify({productId:id})
-    })
+    const res = await fetch("api/products/delete", {
+      method: "DELETE",
+      body: JSON.stringify({ productId: id }),
+    });
+    const data = await res.json();
     if (res.ok) {
-      alert("Success")
+      toast.success("Success", {
+        description: "Item deleted successfully ",
+      });
+      deleteProduct(id);
+      setDeletingProductId(null);
+    } else {
+      toast.error("Error", {
+        description: `${data?.error?.message}`,
+      });
     }
-    deleteProduct(id);
-    setDeletingProductId(null);
   };
 
   return (
-  
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">

@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useInventoryStore } from "@/lib/store";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface AddProductDialogProps {
   open: boolean;
@@ -34,16 +34,13 @@ export function AddProductDialog({
   });
 
   const { addProduct } = useInventoryStore();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.price || !formData.stockQuantity) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
       });
       return;
     }
@@ -73,8 +70,7 @@ export function AddProductDialog({
 
       onOpenChange(false);
 
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Product added successfully",
       });
     }

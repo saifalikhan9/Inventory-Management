@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Trash2, Plus } from "lucide-react";
 import { useInventoryStore } from "@/lib/store";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface SaleItem {
   productId: string;
@@ -38,7 +38,7 @@ export default function Sales() {
   const updateProductQuantity = useInventoryStore(
     (state) => state.updateProductQuantity
   );
-  const { toast } = useToast();
+
   const availableProducts = products.filter((p) => p.stockQuantity > 0);
   const totalAmount = saleItems.reduce((sum, item) => sum + item.total, 0);
 
@@ -86,10 +86,8 @@ export default function Sales() {
       saleItems.length === 0 ||
       !paymentMode
     ) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
       });
       return;
     }
@@ -98,10 +96,8 @@ export default function Sales() {
     for (const item of saleItems) {
       const product = products.find((p) => p.id === item.productId);
       if (!product || product.stockQuantity < item.quantity) {
-        toast({
-          title: "Error",
+        toast.error("Error", {
           description: `Insufficient stock for ${item.productName}`,
-          variant: "destructive",
         });
         return;
       }
@@ -131,7 +127,6 @@ export default function Sales() {
       body: JSON.stringify(payload),
     });
     if (res.ok) {
-      alert("succes");
       const data = await res.json();
 
       addSale(data);
@@ -148,12 +143,13 @@ export default function Sales() {
       setPaymentMode("");
       setAmountPaid("");
 
-      toast({
-        title: "Success",
+      toast("Success", {
         description: "Sale recorded successfully",
       });
     } else {
-      alert("failed");
+      toast.error("Error", {
+        description: "Failed add sale record",
+      });
     }
   };
 
