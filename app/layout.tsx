@@ -1,8 +1,6 @@
 import { type Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-
 import "./globals.css";
-import { Sidebar } from "@/components/sidebar";
 import { Toaster } from "sonner";
 import { MobileLayout } from "@/components/monile-layout";
 

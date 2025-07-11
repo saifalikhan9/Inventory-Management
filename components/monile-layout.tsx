@@ -13,6 +13,8 @@ import { Menu } from "lucide-react";
 import { MobileSidebar } from "@/components/mobile-sidebar";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useInventoryStore } from "@/lib/store";
+import { setInterval } from "timers/promises";
+import { LoaderOne } from "./loader";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -20,6 +22,7 @@ interface MobileLayoutProps {
 
 export function MobileLayout({ children }: MobileLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loader, setLoader] = useState(true);
   const { user } = useUser(); // useUser is preferred over useClerk for easier access
 
   const resetStore = useInventoryStore((state) => state.reset);
@@ -43,6 +46,20 @@ export function MobileLayout({ children }: MobileLayoutProps) {
       localStorage.clear();
     }
   }, [user?.id, resetStore]);
+  useEffect(() => {
+    const interval = setTimeout(() => setLoader(false), 1000);
+    return () => {
+      clearTimeout(interval);
+    };
+  });
+
+  if (loader) {
+    return (
+      <div className=" flex justify-center items-center min-h-screen">
+        <LoaderOne />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

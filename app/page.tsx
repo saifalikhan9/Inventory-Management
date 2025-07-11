@@ -6,7 +6,7 @@ export default async function Home() {
   const { userId } = await auth();
   const salesdata = await prisma.sale.findMany({
     where: {
-      userId,
+      userId:userId!,
     },
     include: {
       customer: true,
@@ -19,7 +19,7 @@ export default async function Home() {
   });
   const productsData = await prisma.products.findMany({
     where: {
-      userId,
+      userId:userId!,
     },
   });
   return (

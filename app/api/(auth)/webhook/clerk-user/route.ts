@@ -1,14 +1,14 @@
 import prisma from "@/lib/db/prisma";
+import { UserJSON } from "@clerk/nextjs/server";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  console.log("here");
   
   try {
 
     const evt = await verifyWebhook(req);
-    const { id, first_name, email_addresses } = evt.data;
+    const { id, first_name, email_addresses } = evt.data as UserJSON;
 
     if (evt.type === "user.created") {
       const email = email_addresses?.[0]?.email_address;
