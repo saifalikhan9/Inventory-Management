@@ -1,6 +1,12 @@
 import { METHODS, STATUS } from "@prisma/client";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+export type SelectedProductsTypes = {
+  id: string;
+  name: string;
+  price: number;
+  stockQuantity: number;
+};
 
 export interface Product {
   id: string;
@@ -48,7 +54,10 @@ export interface Sale {
 interface InventoryStore {
   products: Product[];
   sales: Sale[];
+  selectedProducts: SelectedProductsTypes[];
   setProducts: (product: Product[]) => void;
+  setSelectedProducts: (selectedProducts: SelectedProductsTypes[]) => void;
+  resetSelectedProducts: () => void;
   addProduct: (product: Product) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (id: string) => void;
@@ -57,7 +66,7 @@ interface InventoryStore {
   addSale: (sale: Sale) => void;
   updateSale: (sale: Sale) => void;
   deleteSale: (id: string) => void;
-  reset : () => void
+  reset: () => void;
 }
 
 export const useInventoryStore = create<InventoryStore>()(
@@ -65,6 +74,7 @@ export const useInventoryStore = create<InventoryStore>()(
     (set) => ({
       products: [],
       sales: [],
+      selectedProducts: [],
       setProducts: (products: Product[]) => set({ products }),
       addProduct: (product) =>
         set((state) => ({
@@ -113,7 +123,10 @@ export const useInventoryStore = create<InventoryStore>()(
           sales: state.sales.filter((sale) => sale.id !== id),
         })),
       reset: () => set(() => ({ products: [], sales: [] })),
+      setSelectedProducts: (selectedProducts) => set({ selectedProducts }),
+      resetSelectedProducts: () => set({ selectedProducts: [] }),
     }),
+
     { name: "Inventory-Storage" }
   )
 );

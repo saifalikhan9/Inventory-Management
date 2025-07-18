@@ -19,6 +19,7 @@ import { EditSaleDialog } from "@/components/edit-sale-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 export default function ClientSideSalesComponent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,13 +38,28 @@ export default function ClientSideSalesComponent() {
       (a, b) =>
         new Date(b.salesDate).getTime() - new Date(a.salesDate).getTime()
     );
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch("api/sale/delete", {
+        method: "POST",
+        body: JSON.stringify({ id }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("deleted");
+      } else {
+        toast.error("failed");
+        console.error(data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
     deleteSale(id);
     setDeletingSaleId(null);
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-6 max-h-screen overflow-auto">
       <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
         Sales History
       </h1>

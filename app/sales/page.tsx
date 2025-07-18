@@ -1,369 +1,308 @@
 "use client";
-
-import type React from "react";
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Trash2, Plus } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, Package, ShoppingCart, Trash2 } from "lucide-react";
 import { useInventoryStore } from "@/lib/store";
+import ProductDialog from "@/components/ProductSelectionDialog";
+import { CustomerInfoCard } from "@/components/CustomerInfoCard";
+import { Button } from "@/components/ui/button";
+import ProductDataTable from "@/components/productTable";
+import { METHODS, STATUS } from "@prisma/client";
 import { toast } from "sonner";
+import Link from "next/link";
 
-interface SaleItem {
-  productId: string;
-  productName: string;
-  price: number;
-  quantity: number;
-  total: number;
-}
+const ProductManager: React.FC = () => {
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [quantities, setQuantities] = useState<{ [productId: string]: number }>(
+    {}
+  );
 
-export default function Sales() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
-  const [customerContact, setCustomerContact] = useState("");
-  const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
-  const [paymentMode, setPaymentMode] = useState("");
-  const [amountPaid, setAmountPaid] = useState("");
+  const [customerContact, setCustomerContact] = useState<number>(0);
+  const [paymentMethod, setpaymentMethod] = useState<METHODS>("CASH");
+  const [paymentStatus, setpaymentStatus] = useState<STATUS>("PENDING");
+  const [amountPaid, setAmountPaid] = useState<number>(0);
 
   const products = useInventoryStore((state) => state.products);
-  const addSale = useInventoryStore((state) => state.addSale);
+  const addsale = useInventoryStore((state) => state.addSale);
   const updateProductQuantity = useInventoryStore(
     (state) => state.updateProductQuantity
   );
 
-  const availableProducts = products.filter((p) => p.stockQuantity > 0);
-  const totalAmount = saleItems.reduce((sum, item) => sum + item.total, 0);
+  const selectedProducts = products.filter((product) =>
+    selectedProductIds.has(product.id)
+  );
 
-  const addSaleItem = () => {
-    setSaleItems([
-      ...saleItems,
-      {
-        productId: "",
-        productName: "",
-        price: 0,
-        quantity: 1,
-        total: 0,
-      },
-    ]);
-  };
+  const handleSaveProducts = (newSelectedIds: Set<string>) => {
+    const newQuantities = { ...quantities };
 
-  const updateSaleItem = (index: number, field: keyof SaleItem, value: any) => {
-    const newItems = [...saleItems];
-    newItems[index] = { ...newItems[index], [field]: value };
-
-    if (field === "productId") {
-      const product = products.find((p) => p.id === value);
-      if (product) {
-        newItems[index].productName = product.name;
-        newItems[index].price = product.price;
-        newItems[index].total = product.price * newItems[index].quantity;
+    // Set default quantity 1 for newly added products
+    newSelectedIds.forEach((id) => {
+      if (!newQuantities[id]) {
+        newQuantities[id] = 1;
       }
-    } else if (field === "quantity") {
-      newItems[index].total = newItems[index].price * value;
-    }
+    });
 
-    setSaleItems(newItems);
+    // Remove quantities for removed products
+    Object.keys(newQuantities).forEach((id) => {
+      if (!newSelectedIds.has(id)) {
+        delete newQuantities[id];
+      }
+    });
+
+    setSelectedProductIds(newSelectedIds);
+    setQuantities(newQuantities);
   };
 
-  const removeSaleItem = (index: number) => {
-    setSaleItems(saleItems.filter((_, i) => i !== index));
+  const handleRemoveProduct = (productId: string) => {
+    const newSelection = new Set(selectedProductIds);
+    newSelection.delete(productId);
+    setSelectedProductIds(newSelection);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleClearAll = () => {
+    setSelectedProductIds(new Set());
+  };
 
-    if (
-      !customerName ||
-      !customerContact ||
-      saleItems.length === 0 ||
-      !paymentMode
-    ) {
-      toast.error("Error", {
-        description: "Please fill in all required fields",
-      });
+  const totalValue = selectedProducts.reduce(
+    (sum, product) => sum + quantities[product.id] * product.price,
+    0
+  );
+
+  const incrementQuantity = (productId: string) => {
+    const product = selectedProducts.find((p) => p.id === productId);
+    if (!product) return;
+
+    setQuantities((prev) => {
+      const currentQty = prev[productId] || 1;
+
+      // Don't allow increment if current quantity is equal to stockQuantity
+      if (currentQty >= product.stockQuantity) {
+        toast.warning("No unit left", {
+          action: (
+            <Link href={"/inventory"}>
+              <Button className="" size={"sm"} variant={"outline"}>
+                Click to add
+              </Button>
+            </Link>
+          ),
+          description: "Try to add more Products",
+        });
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [productId]: currentQty + 1,
+      };
+    });
+  };
+
+  const decrementQuantity = (productId: string) => {
+    setQuantities((prev) => {
+      const current = prev[productId] || 1;
+      return {
+        ...prev,
+        [productId]: current > 1 ? current - 1 : 1,
+      };
+    });
+  };
+
+  const handleProcessSale = async () => {
+    if (!customerName || !customerContact || selectedProducts.length === 0) {
+      toast.error("Please fill all required fields and select products.");
       return;
     }
 
-    // Check stock availability
-    for (const item of saleItems) {
-      const product = products.find((p) => p.id === item.productId);
-      if (!product || product.stockQuantity < item.quantity) {
-        toast.error("Error", {
-          description: `Insufficient stock for ${item.productName}`,
-        });
-        return;
-      }
+    if (amountPaid === totalValue) {
+      setpaymentStatus(STATUS.PAID);
     }
-
-    const selectedproducts = saleItems.map((val) => ({
-      productId: val.productId,
-      quantity: val.quantity,
-    }));
-    const customer = {
-      name: customerName,
-      phone: customerContact,
-    };
-
-    const payload = {
-      products: selectedproducts,
-      customer,
-      paymentMethod: paymentMode,
-      paymentStatus:
-        (Number.parseFloat(amountPaid) || totalAmount) >= totalAmount
-          ? "PAID"
-          : "PENDING",
+    const data = {
+      products: selectedProducts.map((val) => {
+        return {
+          productId: val.id,
+          quantity: quantities[val.id],
+        };
+      }),
+      customer: {
+        name: customerName,
+        phone: customerContact,
+      },
+      paymentMethod: paymentMethod,
+      paymentStatus: paymentStatus,
       amountPaid,
     };
-    const res = await fetch("api/sale/add", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      const data = await res.json();
-
-      addSale(data);
-
-      // Update inventory
-      saleItems.forEach((item) => {
-        updateProductQuantity(item.productId, -item.quantity);
+    try {
+      const response = await fetch("api/sale/add", {
+        method: "POST",
+        body: JSON.stringify(data),
       });
+      if (response.ok) {
+        const data = await response.json();
+        addsale(data);
+        data.SaleItem.forEach(({ productId, quantity }) => {
+          console.log("updating");
+          console.log("productId",productId);
+          console.log("quantity",quantity);
+          
+          updateProductQuantity(productId, -quantity);
+        });
 
-      // Reset form
-      setCustomerName("");
-      setCustomerContact("");
-      setSaleItems([]);
-      setPaymentMode("");
-      setAmountPaid("");
-
-      toast("Success", {
-        description: "Sale recorded successfully",
-      });
-    } else {
-      toast.error("Error", {
-        description: "Failed add sale record",
-      });
+        setQuantities({});
+        setSelectedProductIds(new Set());
+        setCustomerName("");
+        setCustomerContact(0);
+        setAmountPaid(0);
+        toast.success("Sale processed successfully!");
+      } else {
+        toast.error("failed");
+        console.log(response, "else");
+      }
+    } catch (error) {
+      console.log(error, "eoor");
     }
+    console.log(data, "DATA");
   };
-
   return (
-    <div className="p-4 lg:p-6 space-y-6">
-      <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-        Make Sale
-      </h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Customer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Customer Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="customerName">Customer Name *</Label>
-                <Input
-                  id="customerName"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="customerContact">Contact Number *</Label>
-                <Input
-                  id="customerContact"
-                  value={customerContact}
-                  onChange={(e) => setCustomerContact(e.target.value)}
-                  required
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Payment Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="paymentMode">Payment Mode *</Label>
-                <Select value={paymentMode} onValueChange={setPaymentMode}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select payment mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CASH">CASH</SelectItem>
-                    <SelectItem value="ONLINE">ONLINE</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="amountPaid">Amount Paid</Label>
-                <Input
-                  id="amountPaid"
-                  type="number"
-                  step="0.01"
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(e.target.value)}
-                  placeholder={`Total: ₹${totalAmount.toFixed(2)}`}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Products */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <CardTitle className="text-lg">Products</CardTitle>
+    <div className="h-175 bg-gray-50 p-6 overflow-auto">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <h1 className="text-4xl font-bold ">Make sale</h1>
+            <div className="flex justify-center gap-x-2">
               <Button
-                type="button"
-                onClick={addSaleItem}
-                className="w-full sm:w-auto"
+                variant="outline"
+                onClick={handleProcessSale}
+                className="shadow-neutral-950  "
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
+                Process Sale
+              </Button>
+              <Button
+                className="bg-blue-700 hover:bg-blue-800"
+                onClick={() => setIsDialogOpen(true)}
+              >
+                <Plus className="h-5 w-5" />
+                <span>
+                  {selectedProducts.length > 0
+                    ? "Add or Remove"
+                    : "Add Products"}
+                </span>
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            {saleItems.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
-                No products added yet.
-              </p>
+          </div>
+        </div>
+
+        {/* Selected Products */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Selected Products
+              </h2>
+
+              {selectedProducts.length > 0 && (
+                <div className="border-b-2 border-blue-500  p-1">
+                  <h2 className="font-medium">Total Amount ₹{totalValue}</h2>
+                </div>
+              )}
+
+              {selectedProducts.length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center space-x-1 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Clear All</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6">
+            {selectedProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Package className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No products selected
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  Click "Add Products" to start building your product selection
+                </p>
+                <Button
+                  onClick={() => setIsDialogOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Add Products</span>
+                </Button>
+              </div>
             ) : (
-              <div className="space-y-4">
-                {saleItems.map((item, index) => (
-                  <Card key={index} className="border">
-                    <CardContent className="p-4">
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-medium">Product {index + 1}</h4>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeSaleItem(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="sm:col-span-2">
-                            <Label>Product</Label>
-                            <Select
-                              value={item.productId}
-                              onValueChange={(value) =>
-                                updateSaleItem(index, "productId", value)
-                              }
-                            >
-                              <SelectTrigger className="mt-1">
-                                <SelectValue placeholder="Select product" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {availableProducts.map((product) => (
-                                  <SelectItem
-                                    key={product.id}
-                                    value={product.id}
-                                  >
-                                    {product.name} (Stock:{" "}
-                                    {product.stockQuantity})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div>
-                            <Label>Quantity</Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) =>
-                                updateSaleItem(
-                                  index,
-                                  "quantity",
-                                  Number.parseInt(e.target.value) || 1
-                                )
-                              }
-                              className="mt-1"
-                            />
-                          </div>
-
-                          <div>
-                            <Label>Price</Label>
-                            <Input
-                              value={`$${item.price.toFixed(2)}`}
-                              disabled
-                              className="mt-1"
-                            />
-                          </div>
-
-                          <div className="sm:col-span-2">
-                            <Label>Total</Label>
-                            <Input
-                              value={`$${item.total.toFixed(2)}`}
-                              disabled
-                              className="mt-1 font-medium"
-                            />
-                          </div>
-                        </div>
+              <div className="flex flex-col gap-4 h-70 overflow-auto px-2">
+                {selectedProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div>
+                        <p className="text-base font-semibold text-gray-900">
+                          {product.description}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          ₹{product.price.toFixed(2)}
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => decrementQuantity(product.id)}
+                          className="px-2 py-1 bg-gray-200 rounded"
+                        >
+                          -
+                        </button>
+                        <span>{quantities[product.id] || 1}</span>
+                        <button
+                          onClick={() => incrementQuantity(product.id)}
+                          className="px-2 py-1 bg-gray-200 rounded"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
-
-            {saleItems.length > 0 && (
-              <Card className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-lg font-semibold">
-                      <span>Total Amount:</span>
-                      <span>₹{totalAmount.toFixed(2)}</span>
-                    </div>
-                    {amountPaid &&
-                      Number.parseFloat(amountPaid) < totalAmount && (
-                        <div className="flex justify-between items-center text-sm text-orange-600">
-                          <span>Balance Due:</span>
-                          <span>
-                            ₹
-                            {(
-                              totalAmount - Number.parseFloat(amountPaid)
-                            ).toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            size="lg"
-            disabled={saleItems.length === 0}
-            className="w-full sm:w-auto"
-          >
-            Process Sale
-          </Button>
+          </div>
+          <CustomerInfoCard
+            setpaymentMethod={setpaymentMethod}
+            setpaymentStatus={setpaymentStatus}
+            amountPaid={amountPaid}
+            setAmountPaid={setAmountPaid}
+            customerName={customerName}
+            setCustomerName={setCustomerName}
+            customerContact={customerContact}
+            setCustomerContact={setCustomerContact}
+          />
         </div>
-      </form>
+        <div className="max-w-sm"></div>
+      </div>
+
+      {/* Product Dialog */}
+      <ProductDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        products={products}
+        selectedProductIds={selectedProductIds}
+        onSave={handleSaveProducts}
+      />
     </div>
   );
-}
+};
+
+export default ProductManager;

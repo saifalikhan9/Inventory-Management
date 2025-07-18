@@ -51,7 +51,7 @@ export function MobileLayout({ children }: MobileLayoutProps) {
     return () => {
       clearTimeout(interval);
     };
-  });
+  },[]);
 
   if (loader) {
     return (

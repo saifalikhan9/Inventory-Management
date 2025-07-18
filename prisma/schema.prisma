@@ -44,7 +44,7 @@ model Products {
 model Customer {
   id     String @id @default(uuid())
   name   String
-  phone  String    @unique
+  phone  String @unique
   userId String
   user   User   @relation(fields: [userId], references: [id])
   Sale   Sale[]
@@ -62,8 +62,7 @@ model Sale {
   paymentStatus STATUS     @default(PENDING)
   paymentMethod METHODS    @default(CASH)
   totalAmount   Float
-  SaleItem      SaleItem[]
-  
+  SaleItem      SaleItem[] 
 }
 
 model SaleItem {
@@ -72,6 +71,6 @@ model SaleItem {
   productId String
   price     Float
   quantity  Int
-  sale      Sale     @relation(fields: [saleId], references: [id])
+  sale      Sale     @relation(fields: [saleId], references: [id] , onDelete: Cascade)
   product   Products @relation(fields: [productId], references: [id])
 }
