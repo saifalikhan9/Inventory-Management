@@ -12,11 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Sale, useInventoryStore } from "@/lib/store";
+import {  Saletype, useInventoryStore } from "@/lib/store";
 import { toast } from "sonner";
 
 interface EditSaleDialogProps {
-  sale: Sale;
+  sale: Saletype;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -62,9 +62,9 @@ export function EditSaleDialog({
     });
     if (response.ok) {
       const updatedSaleData = await response.json();
-      console.log(updatedSaleData);
+ 
 
-      updateSale(updatedSaleData.updatedData as Sale);
+      updateSale(updatedSaleData.updatedData as Saletype);
       onOpenChange(false);
 
       toast.success("Success", {

@@ -6,16 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
+import { METHODS, STATUS } from "@prisma/client";
 
 interface CustomerInfoCardProps {
   customerName: string;
   setCustomerName: (name: string) => void;
-  customerContact: number;
-  setCustomerContact: (contact: number) => void;
-   setpaymentMethod:(method:string)=> void,
-  setpaymentStatus: (status:string)=> void,
+  customerContact: string;
+  setCustomerContact: (contact: string) => void;
+   setpaymentMethod:(method:METHODS)=> void,
+  setpaymentStatus: (status:STATUS)=> void,
   amountPaid : number,
-  setAmountPaid : (amount:string)=> void,
+  setAmountPaid : (amount:number)=> void,
 }
 
 export function CustomerInfoCard({
@@ -67,7 +68,7 @@ export function CustomerInfoCard({
             onChange={(e) => {
               const value = e.target.value
                 if (/^[0-9]*$/.test(value)) {
-                  setAmountPaid(value)
+                  setAmountPaid(Number.parseFloat(value))
                 }
               }}
             placeholder="Enter paid amount by the customer"
@@ -75,7 +76,7 @@ export function CustomerInfoCard({
         </div>
         <div className="space-y-2">
           <Label htmlFor="paymentMode">Payment Mode</Label>
-          <Select onValueChange={(value)=>setpaymentMethod(value)}>
+          <Select onValueChange={(value)=>setpaymentMethod(value as METHODS)}>
         <SelectTrigger>
   <SelectValue  placeholder="Select a Payment Mode" />
         </SelectTrigger>
@@ -90,7 +91,7 @@ export function CustomerInfoCard({
         </div>
         <div className="space-y-2">
           <Label htmlFor="paymentMode">Payment Mode</Label>
-          <Select onValueChange={(value)=>setpaymentStatus(value)}>
+          <Select onValueChange={(value)=>setpaymentStatus(value as STATUS)}>
         <SelectTrigger>
   <SelectValue  placeholder="Select a Payment Mode" />
         </SelectTrigger>

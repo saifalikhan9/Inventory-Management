@@ -28,7 +28,7 @@ export const POST = async (req: NextRequest) => {
     if (exhistingProduct) {
       const newQuantityStock = exhistingProduct.stockQuantity + stockQuantity;
 
-      const updateProduct = await prisma.products.update({
+      await prisma.products.update({
         where: { id: exhistingProduct.id, name },
         data: { stockQuantity: newQuantityStock },
       });

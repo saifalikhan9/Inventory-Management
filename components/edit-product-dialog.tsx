@@ -13,11 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Product, useInventoryStore } from "@/lib/store";
+import {  useInventoryStore } from "@/lib/store";
 import { toast } from "sonner";
+import { Products } from "@prisma/client";
 
 interface EditProductDialogProps {
-  product: Product;
+  product: Products;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -63,13 +64,10 @@ export function EditProductDialog({
       price: Number.parseFloat(formData.price),
       stockQuantity: Number.parseInt(formData.quantity),
     };
-    const res = await fetch("api/products/update", {
+    await fetch("api/products/update", {
       method: "POST",
       body: JSON.stringify({ id, data: updatedProduct }),
     });
-    const data = await res.json();
-    console.log(data, "data");
-
     updateProduct({ ...product, ...updatedProduct });
     onOpenChange(false);
 

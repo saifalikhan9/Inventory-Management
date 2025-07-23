@@ -2,7 +2,7 @@ import { type Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { MobileLayout } from "@/components/monile-layout";
+
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,7 +18,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body >
-           <MobileLayout>{children}</MobileLayout>
+           {children}
         <Toaster />
       </body>
       </html>

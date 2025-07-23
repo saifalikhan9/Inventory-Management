@@ -6,18 +6,19 @@ import {
   useReactTable,
   getSortedRowModel,
   getFilteredRowModel,
+  SortingState,
 } from "@tanstack/react-table";
 
 import { Search, ChevronUp, ChevronDown } from "lucide-react";
-import { Product } from "@/lib/store";
+import { Products } from "@prisma/client";
 
 interface ProductDataTableProps {
-  products: Product[];
-  selectedProductIds?: Set<string>;
-  onSelectionChange?: (productIds: Set<string>) => void;
+  products: Products[];
+  selectedProductIds: Set<string>;
+  onSelectionChange: (productIds: Set<string>) => void;
 }
 
-const columnHelper = createColumnHelper<Product>();
+const columnHelper = createColumnHelper<Products>();
 
 const ProductDataTable: React.FC<ProductDataTableProps> = ({
   products,
@@ -25,7 +26,7 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
   onSelectionChange,
 }) => {
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [sorting, setSorting] = React.useState([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const columns = React.useMemo(
     () => [
@@ -43,7 +44,7 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
           <input
             type="checkbox"
             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            checked={selectedProductIds.has(row.original.id)}
+            checked={selectedProductIds?.has(row.original.id)}
             onChange={(e) => {
               const newSelection = new Set(selectedProductIds);
               if (e.target.checked) {
@@ -60,14 +61,15 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
       columnHelper.accessor("name", {
         header: "Product Name",
         cell: (info) => (
-          <div className="font-medium text-gray-900">{info.getValue()}</div>
+          <div className="font-medium text-gray-900 text-sm truncate max-w-[140px]">
+            {info.getValue()}
+          </div>
         ),
       }),
-
       columnHelper.accessor("price", {
         header: "Price",
         cell: (info) => (
-          <div className="text-gray-900 font-semibold">
+          <div className="text-gray-900 font-semibold text-sm">
             ₹{info.getValue().toFixed(2)}
           </div>
         ),
@@ -78,7 +80,7 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
           const stock = info.getValue();
           return (
             <div
-              className={`font-medium ${
+              className={`font-medium text-sm ${
                 stock < 20 ? "text-red-600" : "text-green-600"
               }`}
             >
@@ -90,7 +92,7 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
       columnHelper.accessor("description", {
         header: "Description",
         cell: (info) => (
-          <div className="text-gray-600 text-sm max-w-xs truncate">
+          <div className="text-gray-600 text-xs max-w-[200px] truncate">
             {info.getValue()}
           </div>
         ),
@@ -114,7 +116,7 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       {/* Search Bar */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -125,12 +127,12 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
           placeholder="Search products..."
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
       {/* Selection Info */}
-      <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600">
         <span>
           {selectedProductIds.size} of {products.length} products selected
         </span>
@@ -138,15 +140,15 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-300">
+      <div className="overflow-x-auto  rounded-md border border-gray-200">
+        <table className="min-w-full text-sm divide-y divide-gray-200">
           <thead className="bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+                    className="px-4 py-2 text-left text-[11px] sm:text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     onClick={header.column.getToggleSortingHandler()}
                   >
                     <div className="flex items-center space-x-1">
@@ -175,11 +177,14 @@ const ProductDataTable: React.FC<ProductDataTableProps> = ({
               </tr>
             ))}
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-gray-100">
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                  <td
+                    key={cell.id}
+                    className="px-4 py-2 whitespace-nowrap text-[13px]"
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

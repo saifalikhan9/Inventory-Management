@@ -1,6 +1,7 @@
-import { METHODS, STATUS } from "@prisma/client";
+import { Prisma, Products } from "@prisma/client";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+
 export type SelectedProductsTypes = {
   id: string;
   name: string;
@@ -8,63 +9,29 @@ export type SelectedProductsTypes = {
   stockQuantity: number;
 };
 
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stockQuantity: number;
-  recorderLevel: number;
-}
-interface customerTypes {
-  id: string;
-  name: string;
-  phone: number;
-}
-interface SaleshistotyType {
-  customerId: string;
-  productId: string;
-  totalPrice: number;
-  amountPaid: number;
-  paymentMode: METHODS;
-  paymentStatus: STATUS;
-  salesDate: Date;
-}
-export interface Sale {
-  id: string;
-  customer: customerTypes;
-  SaleItem: Array<{
-    id: string;
-    product: {
-      id: string;
-      name: string;
-    };
-    price: number;
-    quantity: number;
-    saleId: string;
-    productId: string;
-  }>;
-  totalAmount: number;
-  amountPaid: number;
-  paymentMethod: METHODS;
-  paymentStatus: STATUS;
-  salesDate: Date;
-}
+export const saleWithRelations = Prisma.validator<Prisma.SaleDefaultArgs>()({
+  include: {
+    customer: true,
+    SaleItem: true,
+  },
+});
+
+export type Saletype = Prisma.SaleGetPayload<typeof saleWithRelations>;
 
 interface InventoryStore {
-  products: Product[];
-  sales: Sale[];
+  products: Products[];
+  sales: Saletype[];
   selectedProducts: SelectedProductsTypes[];
-  setProducts: (product: Product[]) => void;
+  setProducts: (product: Products[]) => void;
   setSelectedProducts: (selectedProducts: SelectedProductsTypes[]) => void;
   resetSelectedProducts: () => void;
-  addProduct: (product: Product) => void;
-  updateProduct: (product: Product) => void;
+  addProduct: (product: Products) => void;
+  updateProduct: (product: Products) => void;
   deleteProduct: (id: string) => void;
   updateProductQuantity: (id: string, quantityChange: number) => void;
-  setSale: (sale: Sale[]) => void;
-  addSale: (sale: Sale) => void;
-  updateSale: (sale: Sale) => void;
+  setSale: (sale: Saletype[]) => void;
+  addSale: (sale: Saletype) => void;
+  updateSale: (sale: Saletype) => void;
   deleteSale: (id: string) => void;
   reset: () => void;
 }
@@ -75,7 +42,7 @@ export const useInventoryStore = create<InventoryStore>()(
       products: [],
       sales: [],
       selectedProducts: [],
-      setProducts: (products: Product[]) => set({ products }),
+      setProducts: (products: Products[]) => set({ products }),
       addProduct: (product) =>
         set((state) => ({
           products: [...state.products, product],
@@ -92,7 +59,6 @@ export const useInventoryStore = create<InventoryStore>()(
         })),
       updateProductQuantity: (id, quantityChange) =>
         set((state) => {
-          console.log(id, quantityChange);
           return {
             products: state.products.map((product) =>
               product.id === id
@@ -107,7 +73,7 @@ export const useInventoryStore = create<InventoryStore>()(
             ),
           };
         }),
-      setSale: (sales: Sale[]) => set({ sales }),
+      setSale: (sales: Saletype[]) => set({ sales }),
       addSale: (sale) =>
         set((state) => ({
           sales: [...state.sales, sale],

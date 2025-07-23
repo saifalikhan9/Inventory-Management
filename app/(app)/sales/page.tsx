@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import { Plus, Package, ShoppingCart, Trash2 } from "lucide-react";
+import { Plus, Package, Trash2 } from "lucide-react";
 import { useInventoryStore } from "@/lib/store";
 import ProductDialog from "@/components/ProductSelectionDialog";
 import { CustomerInfoCard } from "@/components/CustomerInfoCard";
 import { Button } from "@/components/ui/button";
-import ProductDataTable from "@/components/productTable";
+
 import { METHODS, STATUS } from "@prisma/client";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -20,10 +20,11 @@ const ProductManager: React.FC = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
-  const [customerContact, setCustomerContact] = useState<number>(0);
+  const [customerContact, setCustomerContact] = useState("");
   const [paymentMethod, setpaymentMethod] = useState<METHODS>("CASH");
   const [paymentStatus, setpaymentStatus] = useState<STATUS>("PENDING");
   const [amountPaid, setAmountPaid] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
 
   const products = useInventoryStore((state) => state.products);
   const addsale = useInventoryStore((state) => state.addSale);
@@ -56,11 +57,11 @@ const ProductManager: React.FC = () => {
     setQuantities(newQuantities);
   };
 
-  const handleRemoveProduct = (productId: string) => {
-    const newSelection = new Set(selectedProductIds);
-    newSelection.delete(productId);
-    setSelectedProductIds(newSelection);
-  };
+  // const handleRemoveProduct = (productId: string) => {
+  //   const newSelection = new Set(selectedProductIds);
+  //   newSelection.delete(productId);
+  //   setSelectedProductIds(newSelection);
+  // };
 
   const handleClearAll = () => {
     setSelectedProductIds(new Set());
@@ -99,6 +100,7 @@ const ProductManager: React.FC = () => {
       };
     });
   };
+  const zeroStock = selectedProducts.filter((v) => v.stockQuantity === 0);
 
   const decrementQuantity = (productId: string) => {
     setQuantities((prev) => {
@@ -111,11 +113,19 @@ const ProductManager: React.FC = () => {
   };
 
   const handleProcessSale = async () => {
+    setLoading(true);
     if (!customerName || !customerContact || selectedProducts.length === 0) {
       toast.error("Please fill all required fields and select products.");
+      setLoading(false);
       return;
     }
-
+    if (zeroStock.length > 0) {
+      toast.error(`${zeroStock.map((v) => v.name)}`, {
+        description: "This product is not Availiable",
+      });
+      setLoading(false);
+      return;
+    }
     if (amountPaid === totalValue) {
       setpaymentStatus(STATUS.PAID);
     }
@@ -142,28 +152,31 @@ const ProductManager: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         addsale(data);
-        data.SaleItem.forEach(({ productId, quantity }) => {
-          console.log("updating");
-          console.log("productId",productId);
-          console.log("quantity",quantity);
-          
-          updateProductQuantity(productId, -quantity);
-        });
+        data.SaleItem.forEach(
+          ({
+            productId,
+            quantity,
+          }: {
+            productId: string;
+            quantity: number;
+          }) => {
+            updateProductQuantity(productId, -quantity);
+          }
+        );
 
         setQuantities({});
         setSelectedProductIds(new Set());
         setCustomerName("");
-        setCustomerContact(0);
+        setCustomerContact("");
         setAmountPaid(0);
         toast.success("Sale processed successfully!");
-      } else {
-        toast.error("failed");
-        console.log(response, "else");
       }
     } catch (error) {
-      console.log(error, "eoor");
+      toast.error("Something Went Wrong");
+      console.log(error, "error");
+    } finally {
+      setLoading(false);
     }
-    console.log(data, "DATA");
   };
   return (
     <div className="h-175 bg-gray-50 p-6 overflow-auto">
@@ -174,16 +187,22 @@ const ProductManager: React.FC = () => {
             <h1 className="text-4xl font-bold ">Make sale</h1>
             <div className="flex justify-center gap-x-2">
               <Button
-                variant="outline"
                 onClick={handleProcessSale}
-                className="shadow-neutral-950  "
+                disabled={loading}
+                variant="outline"
+                className="relative shadow-neutral-950"
               >
-                Process Sale
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin h-4 w-4 border-2 border-t-transparent border-blue-600 rounded-full" />
+                    Processing...
+                  </span>
+                ) : (
+                  "Process Sale"
+                )}
               </Button>
-              <Button
-                className="bg-blue-700 hover:bg-blue-800"
-                onClick={() => setIsDialogOpen(true)}
-              >
+
+              <Button onClick={() => setIsDialogOpen(true)}>
                 <Plus className="h-5 w-5" />
                 <span>
                   {selectedProducts.length > 0
@@ -231,15 +250,9 @@ const ProductManager: React.FC = () => {
                   No products selected
                 </h3>
                 <p className="text-gray-500 mb-6">
-                  Click "Add Products" to start building your product selection
+                  Click &quot;Add Products&quot; to start building your product
+                  selection
                 </p>
-                <Button
-                  onClick={() => setIsDialogOpen(true)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>Add Products</span>
-                </Button>
               </div>
             ) : (
               <div className="flex flex-col gap-4 h-70 overflow-auto px-2">
@@ -250,7 +263,10 @@ const ProductManager: React.FC = () => {
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
-                        <p className="text-base font-semibold text-gray-900">
+                        <h1 className="text-base font-medium text-gray-900">
+                          {product.name}
+                        </h1>
+                        <p className="text-base font-semibold text-gray-500">
                           {product.description}
                         </p>
                         <p className="text-sm text-gray-600 mt-1">

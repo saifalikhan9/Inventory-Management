@@ -20,7 +20,7 @@ export async function DELETE(req: NextRequest) {
         { status: 406 }
       );
     }
-    const del = await prisma.products.delete({ where: { id: productId } });
+  await prisma.products.delete({ where: { id: productId } });
     return NextResponse.json(
       { message: "success fully deleted" },
       { status: 200 }

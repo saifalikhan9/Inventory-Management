@@ -14,30 +14,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Search, Edit, Trash2 } from "lucide-react";
-import { useInventoryStore } from "@/lib/store";
+import { Saletype, useInventoryStore } from "@/lib/store";
 import { EditSaleDialog } from "@/components/edit-sale-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { SaleItem } from "@prisma/client";
 
 export default function ClientSideSalesComponent() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingSale, setEditingSale] = useState<any>(null);
+  const [editingSale, setEditingSale] = useState<Saletype | null>(null);
   const [deletingSaleId, setDeletingSaleId] = useState<string | null>(null);
 
   const sales = useInventoryStore((state) => state.sales);
+  const products = useInventoryStore((state) => state.products);
   const deleteSale = useInventoryStore((state) => state.deleteSale);
+
+  // Create a product lookup map for better performance
+  const productMap = new Map(products.map((product) => [product.id, product]));
+
   const filteredSales = sales
     .filter(
       (sale) =>
-        sale.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sale.customer.phone.toString().includes(searchTerm)
+        sale?.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sale?.customer?.phone.toString().includes(searchTerm)
     )
     .sort(
       (a, b) =>
         new Date(b.salesDate).getTime() - new Date(a.salesDate).getTime()
     );
+
   const handleDelete = async (id: string) => {
     try {
       const response = await fetch("api/sale/delete", {
@@ -56,6 +63,32 @@ export default function ClientSideSalesComponent() {
     }
     deleteSale(id);
     setDeletingSaleId(null);
+  };
+
+  // Helper function to render purchased products with quantities
+  const renderPurchasedProducts = (saleItems: SaleItem[]) => {
+    if (!saleItems || saleItems.length === 0) {
+      return <span className="text-gray-500 text-sm">No items</span>;
+    }
+
+    return (
+      <div className="space-y-1">
+        {saleItems.map((item, index) => {
+          const product = productMap.get(item.productId);
+          return (
+            <React.Fragment key={`${item.productId}-${index}`}>
+              <div className="text-sm px-2 py-1">
+                <span className="font-medium">
+                  {product?.name || "Unknown Product"}
+                </span>
+                <span className="ml-2 text-gray-600">x{item.quantity}</span>
+              </div>
+              {index < saleItems.length - 1 && <Separator className="mx-1" />}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -77,6 +110,7 @@ export default function ClientSideSalesComponent() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
+          {/* Mobile View */}
           <div className="block lg:hidden">
             {filteredSales.length === 0 ? (
               <div className="text-center py-8 text-gray-500 px-4">
@@ -93,10 +127,10 @@ export default function ClientSideSalesComponent() {
                         <div className="flex justify-between items-start">
                           <div className="min-w-0 flex-1">
                             <h3 className="font-medium text-lg truncate">
-                              {sale.customer.name}
+                              {sale?.customer?.name}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              {sale.customer.phone}
+                              {sale?.customer?.phone}
                             </p>
                             <p className="text-sm text-gray-500">
                               {new Date(sale.salesDate).toLocaleDateString()}
@@ -118,13 +152,13 @@ export default function ClientSideSalesComponent() {
                           <div>
                             <span className="text-gray-500">Total Amount:</span>
                             <p className="font-medium">
-                              ${sale.totalAmount.toFixed(2)}
+                              ₹{sale.totalAmount.toFixed(2)}
                             </p>
                           </div>
                           <div>
                             <span className="text-gray-500">Amount Paid:</span>
                             <p className="font-medium">
-                              ${sale.amountPaid.toFixed(2)}
+                              ₹{sale.amountPaid.toFixed(2)}
                             </p>
                           </div>
                           <div className="col-span-2">
@@ -132,6 +166,16 @@ export default function ClientSideSalesComponent() {
                             <p className="font-medium capitalize">
                               {sale.paymentMethod}
                             </p>
+                          </div>
+                        </div>
+
+                        {/* Products section for mobile */}
+                        <div>
+                          <span className="text-gray-500 text-sm">
+                            Products:
+                          </span>
+                          <div className="mt-1 p-2 bg-gray-50 rounded">
+                            {renderPurchasedProducts(sale.SaleItem)}
                           </div>
                         </div>
 
@@ -162,6 +206,8 @@ export default function ClientSideSalesComponent() {
               </div>
             )}
           </div>
+
+          {/* Desktop View */}
           <div className="hidden lg:block">
             <Table>
               <TableHeader>
@@ -181,21 +227,16 @@ export default function ClientSideSalesComponent() {
                 {filteredSales.map((sale) => (
                   <TableRow key={sale.id}>
                     <TableCell className="font-medium">
-                      {sale.customer.name}
+                      {sale?.customer?.name}
                     </TableCell>
-                    <TableCell>{sale.customer.phone}</TableCell>
+                    <TableCell>{sale?.customer?.phone}</TableCell>
                     <TableCell>₹{sale.totalAmount.toFixed(2)}</TableCell>
                     <TableCell>₹{sale.amountPaid.toFixed(2)}</TableCell>
                     <TableCell>
-                      <ScrollArea className="h-15 w-35 rounded-md border">
-                        {sale.SaleItem.map((item) => (
-                          <React.Fragment key={item.productId}>
-                            <div className="text-sm px-2 py-1">
-                              {item.product.name}
-                            </div>
-                            <Separator className="mx-1" />
-                          </React.Fragment>
-                        ))}
+                      <ScrollArea className="h-20 w-48 rounded-md border">
+                        <div className="p-2">
+                          {renderPurchasedProducts(sale.SaleItem)}
+                        </div>
                       </ScrollArea>
                     </TableCell>
                     <TableCell>
@@ -248,12 +289,13 @@ export default function ClientSideSalesComponent() {
           </div>
         </CardContent>
       </Card>
-
-      <EditSaleDialog
-        sale={editingSale}
-        open={!!editingSale}
-        onOpenChange={(open) => !open && setEditingSale(null)}
-      />
+      {editingSale && (
+        <EditSaleDialog
+          sale={editingSale}
+          open={!!editingSale}
+          onOpenChange={(open) => !open && setEditingSale(null)}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={!!deletingSaleId}

@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function PATCH(req: NextRequest) {
   try {
     const { userId } = await auth();
-    console.log(userId);
+  
 
     if (!userId) {
       return NextResponse.json(
@@ -31,11 +31,13 @@ export async function PATCH(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      { message: error?.message || "Internal server Error" },
-      { status: 500 }
-    );
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { message: error?.message || "Internal server Error" },
+        { status: 500 }
+      );
+    }
+    console.log(error);
+    return;
   }
 }

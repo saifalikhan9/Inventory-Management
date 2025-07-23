@@ -19,10 +19,11 @@ import { AddProductDialog } from "@/components/add-product-dialog";
 import { EditProductDialog } from "@/components/edit-product-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { toast } from "sonner";
+import { Products } from "@prisma/client";
 export default function ClientSide() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingProduct, setEditingProduct] = useState<Products | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(
     null
   );
@@ -128,7 +129,9 @@ export default function ClientSide() {
                           </div>
                           <div>
                             <span className="text-gray-500">Quantity:</span>
-                            <p className="font-medium">{product.stockQuantity}</p>
+                            <p className="font-medium">
+                              {product.stockQuantity}
+                            </p>
                           </div>
                           <div>
                             <span className="text-gray-500">
@@ -242,11 +245,13 @@ export default function ClientSide() {
         onOpenChange={setIsAddProductOpen}
       />
 
-      <EditProductDialog
-        product={editingProduct}
-        open={!!editingProduct}
-        onOpenChange={(open) => !open && setEditingProduct(null)}
-      />
+      {editingProduct && (
+        <EditProductDialog
+          product={editingProduct}
+          open={!!editingProduct}
+          onOpenChange={(open) => !open && setEditingProduct(null)}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={!!deletingProductId}

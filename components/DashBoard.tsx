@@ -1,26 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Plus,
   AlertTriangle,
-  DollarSign,
   TrendingUp,
   Package,
+  IndianRupee,
 } from "lucide-react";
 import { AddProductDialog } from "@/components/add-product-dialog";
-import { useInventoryStore } from "@/lib/store";
+import { Saletype, useInventoryStore } from "@/lib/store";
+import { Products } from "@prisma/client";
 
-export default function Dashboard({ productsInitialData, salesInitialData }) {
+interface DashBoardProps {
+  productsInitialData: Products[];
+  salesInitialData: Saletype[];
+}
+
+export default function Dashboard({
+  productsInitialData,
+  salesInitialData,
+}: DashBoardProps) {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const products = useInventoryStore((state) => state.products);
   const sales = useInventoryStore((state) => state.sales);
   const setProducts = useInventoryStore((state) => state.setProducts);
   const setSale = useInventoryStore((state) => state.setSale);
-
   useEffect(() => {
     if (
       (products.length === 0 && productsInitialData.length > 0) ||
@@ -30,26 +38,32 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
       setSale(salesInitialData);
     }
   }, [
-    products,
-    sales,
-    productsInitialData,
-    salesInitialData,
+    products.length,
+    sales.length,
+    productsInitialData?.length,
+    salesInitialData?.length,
     setProducts,
     setSale,
   ]);
 
-  const lowStockProducts = products.filter(
-    (p) => p.stockQuantity <= p.recorderLevel
+  const lowStockProducts = useMemo(
+    () => products.filter((p) => p.stockQuantity <= p.recorderLevel),
+    [products]
   );
-  const todaysSales = sales.filter((sale) => {
+
+  const todaysSales = useMemo(() => {
     const today = new Date().toDateString();
-    return new Date(sale.salesDate).toDateString() === today;
-  });
-  const dailyRevenue = todaysSales.reduce(
-    (sum, sale) => sum + sale.totalAmount,
-    0
+    return sales.filter((sale) => {
+      return new Date(sale.salesDate).toDateString() === today;
+    });
+  }, [sales]);
+
+  const dailyRevenue = useMemo(
+    () => todaysSales.reduce((sum, sale) => sum + sale.totalAmount, 0),
+    [todaysSales]
   );
-  const recentSales = sales.slice(-5).reverse();
+
+  const recentSales = useMemo(() => sales.slice(-5).reverse(), [sales]);
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -107,7 +121,7 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Daily Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+            <IndianRupee className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
@@ -175,7 +189,7 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
                   >
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">
-                        {sale.customer.name}
+                        {sale?.customer?.name}
                       </p>
                       <p className="text-sm text-gray-600">
                         {new Date(sale.salesDate).toLocaleDateString()}
@@ -183,7 +197,10 @@ export default function Dashboard({ productsInitialData, salesInitialData }) {
                     </div>
                     <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
                       <p className="font-medium">
-                        ₹{sale.totalAmount.toFixed(2)}
+                        Amount Paid:- ₹{sale.amountPaid.toFixed(2)}
+                      </p>
+                      <p className="font-medium">
+                        Total Amount:- ₹{sale.totalAmount.toFixed(2)}
                       </p>
                       <Badge
                         variant={

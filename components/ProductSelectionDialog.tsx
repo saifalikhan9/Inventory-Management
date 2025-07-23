@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, Package } from 'lucide-react';
 
 import ProductDataTable from './productTable';
-import { Product } from '@/lib/store';
+import { Products } from '@prisma/client';
+
 
 interface ProductDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  products: Product[];
+  products: Products[];
   selectedProductIds: Set<string>;
   onSave: (selectedIds: Set<string>) => void;
 }
@@ -41,7 +42,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-neutral-50 bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
