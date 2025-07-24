@@ -36,7 +36,7 @@ model Products {
   stockQuantity Int
   recorderLevel Int
   userId        String
-  user          User       @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt     DateTime   @default(now())
   SaleItem      SaleItem[]
 }
@@ -46,7 +46,7 @@ model Customer {
   name   String
   phone  String @unique
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   Sale   Sale[]
 }
 
@@ -54,8 +54,8 @@ model Sale {
   id            String     @id @default(uuid())
   userId        String
   customerId    String
-  user          User       @relation(fields: [userId], references: [id])
-  customer      Customer   @relation(fields: [customerId], references: [id])
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer      Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
   salesDate     DateTime   @default(now())
   amountPaid    Float
   updatedAt     DateTime   @updatedAt
