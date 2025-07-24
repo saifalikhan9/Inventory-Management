@@ -1,4 +1,4 @@
-import { History, Home, Settings, ShoppingBag, Store } from "lucide-react";
+import { History, Home, ShoppingBag, Store } from "lucide-react";
 
 import {
   Sidebar,
