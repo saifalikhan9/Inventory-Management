@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -6,12 +7,21 @@ import {
   SignedOut,
   SignInButton,
   SignUpButton,
+  useUser,
 } from "@clerk/nextjs";
 
 import Link from "next/link";
+import { useInventoryStore } from "@/lib/store";
 
 export default function Home() {
-  
+  const { isSignedIn } = useUser();
+  const reset = useInventoryStore((state) => state.reset);
+  useEffect(() => {
+    if (!isSignedIn) {
+      reset();
+      sessionStorage.removeItem("Inventory-Storage");
+    }
+  }, [reset, isSignedIn]);
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-gray-100 px-4 py-16 flex flex-col items-center text-center">
       {/* Hero Section */}
@@ -40,7 +50,7 @@ export default function Home() {
           </SignedOut>
           <SignedIn>
             <Link href={"dashboard"}>
-            <Button  >Dashboard</Button>
+              <Button>Dashboard</Button>
             </Link>
           </SignedIn>
         </div>

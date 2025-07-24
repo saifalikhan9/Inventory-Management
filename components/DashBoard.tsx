@@ -15,6 +15,7 @@ import { AddProductDialog } from "@/components/add-product-dialog";
 import { Saletype, useInventoryStore } from "@/lib/store";
 import { Products } from "@prisma/client";
 
+
 interface DashBoardProps {
   productsInitialData: Products[];
   salesInitialData: Saletype[];
@@ -24,11 +25,15 @@ export default function Dashboard({
   productsInitialData,
   salesInitialData,
 }: DashBoardProps) {
+
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const products = useInventoryStore((state) => state.products);
   const sales = useInventoryStore((state) => state.sales);
   const setProducts = useInventoryStore((state) => state.setProducts);
   const setSale = useInventoryStore((state) => state.setSale);
+
+
+
   useEffect(() => {
     if (
       (products.length === 0 && productsInitialData.length > 0) ||

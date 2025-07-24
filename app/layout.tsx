@@ -15,6 +15,7 @@ export default function RootLayout({
 }>) {
   return (
   <ClerkProvider
+  
         appearance={{
           elements: {
             organizationSwitcherPopoverRootBox: {
@@ -25,6 +26,7 @@ export default function RootLayout({
               width: "100%",
               pointerEvents: "auto",
             },
+        
           },
         }}
       >
