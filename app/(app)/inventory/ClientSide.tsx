@@ -124,7 +124,7 @@ export default function ClientSide() {
                           <div>
                             <span className="text-gray-500">Price:</span>
                             <p className="font-medium">
-                              ${product.price.toFixed(2)}
+                              ₹{product.price.toFixed(2)}
                             </p>
                           </div>
                           <div>
