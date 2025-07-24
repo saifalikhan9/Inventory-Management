@@ -1,6 +1,6 @@
 import { Prisma, Products } from "@prisma/client";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 export type SelectedProductsTypes = {
   id: string;
@@ -93,6 +93,9 @@ export const useInventoryStore = create<InventoryStore>()(
       resetSelectedProducts: () => set({ selectedProducts: [] }),
     }),
 
-    { name: "Inventory-Storage" }
+    {
+      name: "Inventory-Storage",
+      storage: createJSONStorage(() => sessionStorage),
+    }
   )
 );
